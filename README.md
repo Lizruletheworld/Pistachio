@@ -173,6 +173,6 @@ If you use Pistachio in your research, please cite:
       eprint={2511.19474},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
-      url={[https://arxiv.org/abs/2511.19474](https://arxiv.org/abs/2511.19474)}
+      url={https://arxiv.org/abs/2511.19474}
 }
 ```
