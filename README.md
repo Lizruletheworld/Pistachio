@@ -10,7 +10,7 @@
 ## 📋 Installation
 Clone the repo:
 ```sh
-git clone [https://github.com/Pistachio.git](https://github.com/Pistachio.git)
+git clone https://github.com/Pistachio.git
 cd Pistachio
 ```
 
@@ -148,7 +148,16 @@ python src/pistachio_test.py
 ## 🏆 Scores
 
 Below shows the performance scores (AUR, AP) obtained by various methods on the Pistachio benchmark.
-![Pistachio Benchmark Performance Scores](performance.png)
+| Method | Year | Backbone | Overall AUC (%) | Overall AP (%) |
+| :--- | :--- | :--- | :---: | :---: |
+| RTFM | 2021 | I3D | 82.9 | 69.3 |
+| DR-DMU | 2023 | I3D | 81.5 | **71.5** |
+| MGFN | 2023 | I3D | 74.9 | 50.2 |
+| CLIP-TSA | 2023 | I3D | 76.86 | 55.15 |
+| CLIP-TSA | 2023 | ViT | 80.91 | 57.3 |
+| MULDE | 2024 | I3D | 63.4 | 34.9 |
+| VadCLIP | 2024 | ViT | 78.06 | 64.13 |
+| PEL4VAD | 2024 | ViT | **83.7** | 70.96 |
 
 -----
 
