@@ -20,7 +20,7 @@ This project is divided into two main parts: the **Video Generation Pipeline** a
 
 ### 🎥 Video Generation Pipeline
 
-If you wish to generate videos, please navigate to the `video_generation_pipeline` folder and check the `README.md` file inside for detailed instructions:
+If you wish to generate videos, please navigate to the `video_generation_pipeline` folder and check the **[README.md file inside](https://github.com/Lizruletheworld/Pistachio/blob/main/video_generation_pipeline/README.md)** for detailed instructions.
 
 ```sh
 cd video_generation_pipeline
