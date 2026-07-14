@@ -214,14 +214,14 @@ Below shows the performance scores (AUR, AP) obtained by various methods on the 
 | Method | Year | Backbone | Overall AUC (%) | Overall AP (%) |
 | :--- | :--- | :--- | :---: | :---: |
 | RTFM | 2021 | I3D | 82.9 | 69.3 |
-| DR-DMU | 2023 | I3D | 81.5 | **71.5** |
+| DR-DMU | 2023 | I3D | 81.5 | 71.5 |
 | MGFN | 2023 | I3D | 74.9 | 50.2 |
 | CLIP-TSA | 2023 | I3D | 76.86 | 55.15 |
 | CLIP-TSA | 2023 | ViT | 80.91 | 57.3 |
 | MULDE | 2024 | I3D | 63.4 | 34.9 |
 | VadCLIP | 2024 | ViT | 78.06 | 64.13 |
 | PEL4VAD | 2024 | ViT | **83.7** | 70.96 |
-| Fed-WSVAD | 2025 | ViT | 83.2 | 71.9 |
+| Fed-WSVAD | 2025 | ViT | 83.2 | **71.9** |
 | VADTree | 2026 | - | 72.52 | 25.15 |
 
 -----
