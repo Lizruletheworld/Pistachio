@@ -221,6 +221,8 @@ Below shows the performance scores (AUR, AP) obtained by various methods on the 
 | MULDE | 2024 | I3D | 63.4 | 34.9 |
 | VadCLIP | 2024 | ViT | 78.06 | 64.13 |
 | PEL4VAD | 2024 | ViT | **83.7** | 70.96 |
+| Fed-WSVAD | 2025 | ViT | 83.2 | 71.9 |
+| VADTree | 2026 | - | 72.52 | 25.15 |
 
 -----
 
