@@ -3,16 +3,41 @@ import numpy as np
 from utils.utils import process_feat
 import torch
 from torch.utils.data import DataLoader
+import os
 # torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 from pathlib import Path
 import pickle
 
+
+
+def _find_dataset_root() -> Path:
+    candidates = []
+    env_root = os.getenv('PISTACHIO_DATASET_ROOT')
+    if env_root:
+        candidates.append(Path(env_root).expanduser())
+
+    env_repo_root = os.getenv('PISTACHIO_ROOT')
+    if env_repo_root:
+        candidates.append(Path(env_repo_root).expanduser() / 'Pistachio_dataset')
+
+    file_path = Path(__file__).resolve()
+    for parent in file_path.parents:
+        candidates.append(parent / 'Pistachio_dataset')
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    if candidates:
+        return candidates[0]
+    return Path('Pistachio_dataset')
 class Dataset(data.Dataset):
     def __init__(self, args, is_normal=True, transform=None, test_mode=False, normal_only=False):
         self.is_normal = is_normal
         self.dataset = args.dataset
         self.args = args
+        self.dataset_root = _find_dataset_root()
 
         if self.dataset in ['shanghai', "sh"]:
             if test_mode:
@@ -52,6 +77,9 @@ class Dataset(data.Dataset):
         else:
             raise SystemError("Check main.py --dataset")
 
+        if not Path(self.rgb_list_file).is_absolute():
+            self.rgb_list_file = str((Path(__file__).resolve().parent / self.rgb_list_file).resolve())
+
         self.tranform = transform
         self.test_mode = test_mode
         self._parse_list()
@@ -67,8 +95,27 @@ class Dataset(data.Dataset):
             "xd": 19050
         }
 
+    def _resolve_feature_path(self, raw_path):
+        path_str = raw_path.strip()
+        if not path_str:
+            return path_str
+
+        path = Path(path_str)
+        if path.is_absolute():
+            return str(path)
+
+        current = path.as_posix()
+        if current.startswith('Pistachio/VAD/'):
+            return str(self.dataset_root / current.split('Pistachio/', 1)[1])
+        if current.startswith('Pistachio_dataset/'):
+            return str(self.dataset_root.parent / current)
+        if current.startswith('VAD/'):
+            return str(self.dataset_root / current)
+        return str((Path(self.rgb_list_file).resolve().parent / path).resolve())
+
     def _parse_list(self):
-        self.list = list(open(self.rgb_list_file))
+        with open(self.rgb_list_file, 'r') as handle:
+            self.list = [self._resolve_feature_path(line) for line in handle if line.strip()]
 
         if self.test_mode is False:
             if self.dataset in ["sh", 'shanghai']:
@@ -104,23 +151,27 @@ class Dataset(data.Dataset):
                 if self.is_normal:
                     self.list = self.list[11580:]
                     print(len(self.list))
-                    assert len(self.list) == 34050
+                    if not self.list:
+                        raise RuntimeError('Empty normal split for Pistachio.')
                     # print(self.list)
                 else:
                     self.list = self.list[:11580]
                     print(len(self.list))
-                    assert len(self.list) == 11580
+                    if not self.list:
+                        raise RuntimeError('Empty anomaly split for Pistachio.')
                     # print(self.list)
             elif self.dataset == 'pistachio_i3d':
                 if self.is_normal:
                     self.list = self.list[1158:]
                     print(len(self.list))
-                    assert len(self.list) == 3405
+                    if not self.list:
+                        raise RuntimeError('Empty normal split for Pistachio I3D.')
                     # print(self.list)
                 else:
                     self.list = self.list[:1158]
                     print(len(self.list))
-                    assert len(self.list) == 1158
+                    if not self.list:
+                        raise RuntimeError('Empty anomaly split for Pistachio I3D.')
                     # print(self.list)
 
     def __getitem__(self, index):

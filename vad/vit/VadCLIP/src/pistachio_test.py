@@ -75,13 +75,16 @@ def test(model, testdataloader, maxlen, prompt_text, gt, gtsegments, gtlabels, d
     print("AUC1: ", ROC1, " AP1: ", AP1)
     print("AUC2: ", ROC2, " AP2:", AP2)
 
-    dmap, iou = dmAP(element_logits2_stack, gtsegments, gtlabels, excludeNormal=False)
-    averageMAP = 0
-    for i in range(5):
-        print('mAP@{0:.1f} ={1:.2f}%'.format(iou[i], dmap[i]))
-        averageMAP += dmap[i]
-    averageMAP = averageMAP/(i+1)
-    print('average MAP: {:.2f}'.format(averageMAP))
+    if gtsegments is not None and gtlabels is not None:
+        dmap, iou = dmAP(element_logits2_stack, gtsegments, gtlabels, excludeNormal=False)
+        averageMAP = 0
+        for i in range(5):
+            print('mAP@{0:.1f} ={1:.2f}%'.format(iou[i], dmap[i]))
+            averageMAP += dmap[i]
+        averageMAP = averageMAP / (i + 1)
+        print('average MAP: {:.2f}'.format(averageMAP))
+    else:
+        print('Segment-level mAP skipped because gt_segment/gt_label files were not provided.')
 
     return ROC1, AP1
 
@@ -131,11 +134,11 @@ if __name__ == '__main__':
 
     prompt_text = get_prompt_text(label_map)
     gt = np.load(args.gt_path)
-    gtsegments = np.load(args.gt_segment_path, allow_pickle=True)
-    gtlabels = np.load(args.gt_label_path, allow_pickle=True)
+    gtsegments = np.load(args.gt_segment_path, allow_pickle=True) if args.gt_segment_path else None
+    gtlabels = np.load(args.gt_label_path, allow_pickle=True) if args.gt_label_path else None
 
     model = CLIPVAD(args.classes_num, args.embed_dim, args.visual_length, args.visual_width, args.visual_head, args.visual_layers, args.attn_window, args.prompt_prefix, args.prompt_postfix, device)
-    model_param = torch.load(args.model_path)
+    model_param = torch.load(args.model_path, map_location=device)
     model.load_state_dict(model_param)
 
     test(model, testdataloader, args.visual_length, prompt_text, gt, gtsegments, gtlabels, device)

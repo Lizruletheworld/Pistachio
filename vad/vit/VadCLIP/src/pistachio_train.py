@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
 import numpy as np
 import random
+import os
 
 from model import CLIPVAD
 from pistachio_test import test
@@ -41,8 +42,13 @@ def CLAS2(logits, labels, lengths, device):
 def train(model, normal_loader, anomaly_loader, testloader, args, label_map, device):
     model.to(device)
     gt = np.load(args.gt_path)
-    gtsegments = np.load(args.gt_segment_path, allow_pickle=True)
-    gtlabels = np.load(args.gt_label_path, allow_pickle=True)
+    gtsegments = np.load(args.gt_segment_path, allow_pickle=True) if args.gt_segment_path else None
+    gtlabels = np.load(args.gt_label_path, allow_pickle=True) if args.gt_label_path else None
+
+    for output_path in [args.model_path, args.checkpoint_path]:
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     scheduler = MultiStepLR(optimizer, args.scheduler_milestones, args.scheduler_rate)
@@ -128,7 +134,7 @@ def setup_seed(seed):
 
 if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    args = me_option.parser.parse_args()
+    args = pistachio_option.parser.parse_args()
     setup_seed(args.seed)
 
 

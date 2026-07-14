@@ -5,10 +5,13 @@ import numpy as np
 import ipdb
 from pathlib import Path
 
+
+_LIST_ROOT = Path(__file__).resolve().parent / 'list'
+
 def test(dataloader, model, args, viz, device, evals="AUC", wandb_pack=None):
     with torch.no_grad():
         model.eval()
-        pred = torch.zeros(0)
+        pred = torch.empty(0, device=device)
         log = 0
 
         for i, input in enumerate(dataloader):
@@ -25,15 +28,15 @@ def test(dataloader, model, args, viz, device, evals="AUC", wandb_pack=None):
             log += input.shape[2]
 
         if args.dataset in ['sh', 'shanghai']:
-            gt = np.load('list/gt-sh.npy')
+            gt = np.load(_LIST_ROOT / 'gt-sh.npy')
         elif args.dataset == "ucf":
-            gt = np.load('list/gt-ucf.npy')
+            gt = np.load(_LIST_ROOT / 'gt-ucf.npy')
         elif args.dataset == "xd":
-            gt = np.load('list/gt-xd.npy')
+            gt = np.load(_LIST_ROOT / 'gt-xd.npy')
         elif args.dataset == "pistachio":
-            gt = np.load('list/gt-pistachio.npy')
+            gt = np.load(_LIST_ROOT / 'gt-pistachio.npy')
         elif args.dataset == "pistachio_i3d":
-            gt = np.load('list/gt-pistachio_i3d.npy')
+            gt = np.load(_LIST_ROOT / 'gt-pistachio_i3d.npy')
 
         pred = list(pred.cpu().detach().numpy())
         pred = np.repeat(np.array(pred), 16)

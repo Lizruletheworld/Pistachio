@@ -1,13 +1,17 @@
 import torch
 import numpy as np
+import pdb
 from dataset_loader import Pistachio # Assuming Pistachio class is defined elsewhere
 from options import parse_args # Assuming options are defined elsewhere
 from config import Config # Assuming Config class is defined elsewhere
 import utils # Assuming utils functions are defined elsewhere
 import os
+from pathlib import Path
 from model import WSAD # Assuming WSAD model is defined elsewhere
 from dataset_loader import data
 from sklearn.metrics import precision_recall_curve, roc_curve, auc
+
+_METHOD_ROOT = Path(__file__).resolve().parent
 
 def evaluate_model(net, config, test_loader, model_file=None):
     """
@@ -24,7 +28,7 @@ def evaluate_model(net, config, test_loader, model_file=None):
         
         # 1. Load the Segment-Level Ground Truth file (e.g., 402 videos * 32 segments = 12864)
         # NOTE: This GT file must be segment-level, not frame-level.
-        frame_gt = np.load("/home/intern/lijie/baseline_output/UR-DMU-master/list/combined_segment_gt_32.npy")
+        frame_gt = np.load(_METHOD_ROOT / 'list' / 'combined_segment_gt_32.npy')
         
         # List to collect segment scores from all videos
         segment_scores_list = []

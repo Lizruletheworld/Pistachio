@@ -10,21 +10,13 @@ import os
 if __name__ == '__main__':
     # 1. 加载参数 (会加载 option.py 中的所有默认值)
     args = option.parse_args()
-    
-    # --- (用户修改区域) ---
-    # 在这里“规定死”你的参数
-    
-    # 1. 规定数据集名称
-    args.datasetname = "UCF"  # 比如 "XD", "ShanghaiTech", "UCF" 等
-    
-    # 2. 规定你的模型路径
-    # !! 请确保使用你自己的完整路径 !!
-    args.pretrained_ckpt = "/home/intern/lijie/baseline_output/MGFN.-main/ckpt/mgfn69-i3d.pkl" 
-    # ---------------------
 
     print(f"--- 模式: 仅测试 ---")
     print(f"已固定数据集: {args.datasetname}")
     print(f"已固定模型路径: {args.pretrained_ckpt}")
+
+    if args.pretrained_ckpt is None:
+        raise ValueError("Please provide --pretrained_ckpt for inference.")
 
     config = Config(args)
 
@@ -46,7 +38,7 @@ if __name__ == '__main__':
     # 检查文件是否存在
     if not os.path.exists(args.pretrained_ckpt):
         print(f"错误：找不到指定的模型文件 {args.pretrained_ckpt}")
-        print("请检查 evaluate.py 脚本中的 'args.pretrained_ckpt' 路径是否正确")
+        print("请检查 --pretrained_ckpt 路径是否正确")
         exit()
 
     try:

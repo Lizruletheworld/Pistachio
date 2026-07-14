@@ -51,31 +51,46 @@ cd video_generation_pipeline
 
 ### 🧠 Video Anomaly Detection (VAD) Method Testing
 
-This repository includes testing scripts and necessary modifications for seven VAD methods. These methods are categorized based on their backbone network:
+This repository includes testing scripts and necessary modifications for nine VAD methods. These methods are categorized based on their backbone network:
 
   * **I3D Backbone Methods**: Located in the `Pistachio/vad/i3d` directory.
   * **ViT Backbone Methods**: Located in the `Pistachio/vad/vit` directory.
+  * **Training-free / VLM Methods**: Located in the `Pistachio/vad/training-free` directory.
 
-**⚠️ Testing Procedure**
+Before running the VAD adapters, set `PISTACHIO_DATASET_ROOT` to your `Pistachio_dataset` directory and regenerate method lists with `python Pistachio/vad/prepare_pistachio_lists.py`. See `Pistachio/vad/README.md` for details, including MULDE preprocessing.
 
-1.  **Clone the Original Repository**: For each method you want to test, first `git clone` the **original repository provided in the respective paper**.
-2.  **Apply Modifications**: Apply the required file/folder changes or additions to your cloned repository based on the instructions provided in the corresponding subfolder within `Pistachio/vad/i3d` or `Pistachio/vad/vit`.
+**VAD adapter workflow**
 
-Below are the seven methods, their details, and placeholders for the execution code:
+The VAD folders are adapters for the original method repositories. For a clean customer setup:
+
+1. Download the dataset archives from Hugging Face: https://huggingface.co/datasets/lizirulestheworld/Pistachio
+2. Extract the archives into one directory so that it contains `VAD/` and/or `VAU/`.
+3. Clone this Pistachio code repository.
+4. Set `PISTACHIO_DATASET_ROOT` to the extracted dataset directory.
+5. Run `python Pistachio/vad/prepare_pistachio_lists.py --dataset-root "$PISTACHIO_DATASET_ROOT"`.
+6. Clone the original method repository.
+7. Copy the matching adapter folder from `Pistachio/vad/...` into the cloned method repository.
+8. Run the method from that cloned repository.
+
+The adapter workflow was smoke-tested for data loading, path resolution, and selected lightweight forward/path checks. Full training or full VLM inference to final benchmark metrics is not part of the smoke test. See `Pistachio/vad/README.md` for the exact clone URLs, copy commands, environment notes, MULDE preprocessing, Fed-WSVAD checks, and VADTree scope.
+
+Below are the nine methods and their adapter paths:
 
 -----
 
-### **Method List and Execution Code**
+### **Method List**
 
 | Method Name         | Backbone | Pistachio Path                                            | Original Repository Link                                      |
 |:--------------------|:---------|:----------------------------------------------------------|:--------------------------------------------------------------|
-| **MGFN**            | I3D      | `Pistachio/vad/i3d/MGFN.-main]`                           | https://github.com/carolchenyx/MGFN.                          |
+| **MGFN**            | I3D      | `Pistachio/vad/i3d/MGFN.-main`                           | https://github.com/carolchenyx/MGFN.                          |
 | **MULDE**           | I3D      | `Pistachio/vad/i3d/MULDE`                                 | https://github.com/divyanshm21/MULDE--Video-Anomaly-detection |
 | **RTFM**            | I3D      | `Pistachio/vad/i3d/RTFM`                                  | https://github.com/tianyu0207/RTFM                            |
 | **UR-DMU-master**   | I3D      | `Pistachio/vad/i3d/UR-DMU-master`                         | https://github.com/henrryzh1/UR-DMU                           |
 | **CLIP-TSA**        | I3D/ViT  | `Pistachio/vad/i3d/CLIP-TSA` `Pistachio/vad/vit/CLIP-TSA` | https://github.com/joos2010kj/CLIP-TSA                        |
 | **PEL4VAD**                | ViT      | `Pistachio/vad/vit/PEL4VAD`                               | https://github.com/yujiangpu20/PEL4VAD                        |
 | **VadCLIP** | ViT      | `Pistachio/vad/vit/VadCLIP`                               | https://github.com/nwpu-zxr/VadCLIP                                                              |
+| **Fed-WSVAD**       | ViT      | `Pistachio/vad/vit/Fed-WSVAD`                             | https://github.com/wbfwonderful/Fed-WSVAD                    |
+| **VADTree**         | VLM / training-free | `Pistachio/vad/training-free/VADTree`             | https://github.com/wenlongli10/VADTree                       |
 
 -----
 
@@ -163,6 +178,32 @@ python main.py --dataset 'pistachio' --mode 'infer'
 # Please fill in the code required to run this method
 python src/pistachio_train.py
 python src/pistachio_test.py
+```
+
+-----
+
+### **Fed-WSVAD**
+
+**Example Run Code**:
+
+```sh
+python train.py --dataset me --split_mode event --batch_size 64 --clients_num 32
+python inference.py --dataset me --checkpoint /path/to/model.pth
+```
+
+-----
+
+### **VADTree**
+
+VADTree is a training-free VLM pipeline. The Pistachio adapter provides annotations, nested video path resolution, and patched scripts; external model checkpoints and generated intermediate JSON files are not included. See `vad/training-free/VADTree/README.md`.
+
+```sh
+export PISTACHIO_DATASET_ROOT=/path/to/Pistachio_dataset
+python EfficientGEBD/GEBD_split100.py \
+  --video_dir "$PISTACHIO_DATASET_ROOT/VAD/video/test" \
+  --annotationfile_path dataset_info/Pistachio/annotations/pistachio_anomaly_test.txt \
+  --config-file /path/to/baseline.yaml \
+  --resume /path/to/model_best.pth
 ```
 
 -----

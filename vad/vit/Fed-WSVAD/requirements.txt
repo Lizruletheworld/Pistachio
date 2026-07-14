@@ -1,0 +1,11 @@
+numpy
+pandas
+torch
+torchvision
+pillow
+tqdm
+ftfy
+regex
+scipy
+einops
+scikit-learn

@@ -3,6 +3,48 @@ import torch.utils.data as data
 import os
 import numpy as np
 import utils 
+from pathlib import Path
+
+
+_METHOD_ROOT = Path(__file__).resolve().parent
+
+
+def _find_dataset_root() -> Path:
+    candidates = []
+    env_root = os.getenv('PISTACHIO_DATASET_ROOT')
+    if env_root:
+        candidates.append(Path(env_root).expanduser())
+
+    env_repo_root = os.getenv('PISTACHIO_ROOT')
+    if env_repo_root:
+        candidates.append(Path(env_repo_root).expanduser() / 'Pistachio_dataset')
+
+    file_path = Path(__file__).resolve()
+    for parent in file_path.parents:
+        candidates.append(parent / 'Pistachio_dataset')
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    if candidates:
+        return candidates[0]
+    return Path('Pistachio_dataset')
+def _resolve_pistachio_path(path_str: str) -> str:
+    dataset_root = _find_dataset_root()
+    path = Path(path_str)
+
+    if path.is_absolute():
+        return str(path)
+
+    current = path.as_posix()
+    if current.startswith('Pistachio/VAD/'):
+        return str(dataset_root / current.split('Pistachio/', 1)[1])
+    if current.startswith('Pistachio_dataset/'):
+        return str(dataset_root.parent / current)
+    if current.startswith('VAD/'):
+        return str(dataset_root / current)
+    return str(path)
 
 
 class UCF_crime(data.DataLoader):
@@ -134,8 +176,10 @@ class Pistachio(data.DataLoader):
         self.num_segments = num_segments
         self.len_feature = len_feature
         
-        # Load Pistachio dataset list file
-        split_path = os.path.join('list','pistachio_{}.list'.format(self.mode))
+        if self.mode == 'Train':
+            split_path = _METHOD_ROOT / 'list' / 'pistachio_Train.list'
+        else:
+            split_path = _METHOD_ROOT / 'list' / 'pistachio_Test.list'
         split_file = open(split_path, 'r')
         self.vid_list = []
         for line in split_file:
@@ -181,7 +225,7 @@ class Pistachio(data.DataLoader):
     def get_data(self, index):
         vid_info = self.vid_list[index][0]  
         name = self.parse_video_name(vid_info)
-        video_feature = np.load(vid_info).astype(np.float32)  
+        video_feature = np.load(_resolve_pistachio_path(vid_info)).astype(np.float32)  
 
         # Step 1: Handle 10-crop averaging
         # Check if features are 3D (T, C, D) and average across crop dimension
@@ -224,16 +268,12 @@ class Pistachio(data.DataLoader):
 
     def is_normal_video(self, video_path):
         """Determine if video is normal based on Pistachio dataset rules"""
-        path_parts = video_path.split('/')
-        
-        # Check if path has enough parts (index 6 should contain 'normal' or 'anomaly')
-        if len(path_parts) > 6:
-            if "normal" in path_parts[6].lower():
-                return True
-            elif "anomaly" in path_parts[6].lower():
-                return False
-                
-        # Default to False if path structure doesn't match
+        path_parts = Path(video_path).as_posix().split('/')
+        lowered = [part.lower() for part in path_parts]
+        if 'normal' in lowered:
+            return True
+        if 'anomaly' in lowered:
+            return False
         return False
 
     def parse_video_name(self, video_path):

@@ -5,7 +5,7 @@ import utils
 from options import *
 from config import *
 from train import *
-from me_test import test
+from pistachio_test import test
 from model import *
 from utils import Visualizer
 import os
@@ -30,17 +30,17 @@ if __name__ == "__main__":
     net = net.cuda()
 
     normal_train_loader = data.DataLoader(
-        ME(root_dir = config.root_dir, mode = 'Train', modal = config.modal, num_segments = 200, len_feature = config.len_feature, is_normal = True),
+        Pistachio(root_dir = config.root_dir, mode = 'Train', modal = config.modal, num_segments = 200, len_feature = config.len_feature, is_normal = True),
             batch_size = 64,
             shuffle = True, num_workers = config.num_workers,
             worker_init_fn = worker_init_fn, drop_last = True)
     abnormal_train_loader = data.DataLoader(
-        ME(root_dir = config.root_dir, mode = 'Train', modal = config.modal, num_segments = 200, len_feature = config.len_feature, is_normal = False),
+        Pistachio(root_dir = config.root_dir, mode = 'Train', modal = config.modal, num_segments = 200, len_feature = config.len_feature, is_normal = False),
             batch_size = 64,
             shuffle = True, num_workers = config.num_workers,
             worker_init_fn = worker_init_fn, drop_last = True)
     test_loader = data.DataLoader(
-        ME(root_dir = config.root_dir, mode = 'Test', modal = config.modal, num_segments = config.num_segments, len_feature = config.len_feature),
+        Pistachio(root_dir = config.root_dir, mode = 'Test', modal = config.modal, num_segments = config.num_segments, len_feature = config.len_feature),
             batch_size = 1,
             shuffle = False, num_workers = config.num_workers,
             worker_init_fn = worker_init_fn)
@@ -82,4 +82,3 @@ if __name__ == "__main__":
             if step == config.num_iters:
                 torch.save(net.state_dict(), os.path.join(args.model_path, \
                     "me_trans_{}.pkl".format(step)))
-

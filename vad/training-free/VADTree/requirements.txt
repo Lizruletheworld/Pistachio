@@ -1,0 +1,10 @@
+numpy
+torch
+torchvision
+scikit-learn
+opencv-python
+Pillow
+tqdm
+yacs
+tabulate
+tensorboard

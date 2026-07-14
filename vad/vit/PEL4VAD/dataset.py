@@ -2,6 +2,47 @@ import torch.utils.data as data
 from utils import process_feat
 import numpy as np
 import os
+from pathlib import Path
+
+
+
+
+def _find_dataset_root() -> Path:
+    candidates = []
+    env_root = os.getenv('PISTACHIO_DATASET_ROOT')
+    if env_root:
+        candidates.append(Path(env_root).expanduser())
+
+    env_repo_root = os.getenv('PISTACHIO_ROOT')
+    if env_repo_root:
+        candidates.append(Path(env_repo_root).expanduser() / 'Pistachio_dataset')
+
+    file_path = Path(__file__).resolve()
+    for parent in file_path.parents:
+        candidates.append(parent / 'Pistachio_dataset')
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    if candidates:
+        return candidates[0]
+    return Path('Pistachio_dataset')
+def _resolve_feature_path(raw_path: str) -> str:
+    dataset_root = _find_dataset_root()
+    path = Path(raw_path)
+
+    if path.is_absolute():
+        return str(path)
+
+    current = path.as_posix()
+    if current.startswith('Pistachio/VAD/'):
+        return str(dataset_root / current.split('Pistachio/', 1)[1])
+    if current.startswith('Pistachio_dataset/'):
+        return str(dataset_root.parent / current)
+    if current.startswith('VAD/'):
+        return str(dataset_root / current)
+    return str(path)
 
 
 class UCFDataset(data.Dataset):
@@ -154,7 +195,7 @@ class PistachioDataset(data.Dataset):
                 label = 0.0
                 ano_idx = 0
 
-        feat_path = os.path.join(self.feat_prefix, path_str)
+        feat_path = _resolve_feature_path(os.path.join(self.feat_prefix, path_str))
         
         v_feat = np.array(np.load(feat_path), dtype=np.float32)
         

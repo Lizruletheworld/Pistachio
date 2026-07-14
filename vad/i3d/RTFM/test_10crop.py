@@ -2,6 +2,22 @@ import matplotlib.pyplot as plt
 import torch
 from sklearn.metrics import auc, roc_curve, precision_recall_curve
 import numpy as np
+from pathlib import Path
+
+def _find_gt_root() -> Path:
+    method_root = Path(__file__).resolve().parent
+    candidates = [
+        method_root.parent / 'CLIP-TSA-i3d' / 'list',
+        method_root.parent / 'CLIP-TSA' / 'list',
+        method_root.parents[1] / 'i3d' / 'CLIP-TSA' / 'list',
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+_GT_ROOT = _find_gt_root()
 
 def test(dataloader, model, args, viz, device):
     with torch.no_grad():
@@ -21,7 +37,7 @@ def test(dataloader, model, args, viz, device):
         if args.dataset == 'shanghai':
             gt = np.load('list/gt-sh.npy')
         else:
-            gt = np.load('/home/intern/lijie/baseline_output/CLIP-TSA/list/gt-pistachio_i3d.npy')
+            gt = np.load(_GT_ROOT / 'gt-pistachio_i3d.npy')
 
         pred = list(pred.cpu().detach().numpy())
         pred = np.repeat(np.array(pred), 16)
@@ -42,4 +58,3 @@ def test(dataloader, model, args, viz, device):
         viz.lines('roc', tpr, fpr)
         return rec_auc, pr_auc
         # return rec_auc
-

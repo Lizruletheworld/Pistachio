@@ -54,11 +54,14 @@ def test(dataloader, model, args, device):
 if __name__ == '__main__':
     args = option.parse_args()
     config = Config(args)
-    device = torch.device("cuda")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = Model()
     test_loader = DataLoader(Dataset(args, test_mode=True),
                               batch_size=1, shuffle=False,
                               num_workers=0, pin_memory=False)
     model = model.to(device)
-    model_dict = model.load_state_dict({k.replace('module.', ''): v for k, v in torch.load('mgfn_ucf.pkl').items()})
+    if args.pretrained_ckpt is None:
+        raise ValueError('Please provide --pretrained_ckpt for testing.')
+    state_dict = torch.load(args.pretrained_ckpt, map_location=device)
+    model.load_state_dict({k.replace('module.', ''): v for k, v in state_dict.items()})
     auc = test(test_loader, model, args, device)

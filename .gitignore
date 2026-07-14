@@ -1,0 +1,27 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local environments and notebooks
+.env
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Training and smoke-test outputs
+runs/
+wandb/
+ckpt/
+checkpoints/
+model/
+auc_record/
+log_info.log
+*.log
+fpr.npy
+tpr.npy
+precision.npy
+recall.npy
+
+# Generated MULDE arrays; rebuild with vad/i3d/MULDE/prepare_preprocessed.py
+vad/i3d/MULDE/preprocessed_for_MULDE/*.npy
+vad/i3d/MULDE/runs/

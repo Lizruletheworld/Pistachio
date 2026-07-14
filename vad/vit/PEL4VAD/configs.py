@@ -1,4 +1,10 @@
 
+from pathlib import Path
+
+
+_METHOD_ROOT = Path(__file__).resolve().parent
+
+
 def build_config(dataset):
     cfg = type('', (), {})()
     if dataset in ['ucf', 'ucf-crime']:
@@ -84,10 +90,10 @@ def build_config(dataset):
         cfg.model_name = 'pistachio_'
         cfg.metrics = 'AUC'
         cfg.feat_prefix = ''
-        cfg.train_list = '/home/intern/lijie/baseline_output/CLIP-TSA/list/vit/pistachio-vit.list'
-        cfg.test_list = '/home/intern/lijie/baseline_output/CLIP-TSA/list/vit/pistachio-vit-test.list'
-        cfg.token_feat = '/home/intern/lijie/baseline/PEL4VAD-master-vit/lijie/PEL4VAD/list/me/me-prompt.npy'
-        cfg.gt = '/home/intern/lijie/Pistachio_dataset/VAD/vit-features/gt_me.npy'
+        cfg.train_list = str(_METHOD_ROOT / 'list' / 'pistachio' / 'train.list')
+        cfg.test_list = str(_METHOD_ROOT / 'list' / 'pistachio' / 'test.list')
+        cfg.token_feat = str(_METHOD_ROOT / 'list' / 'pistachio' / 'me-prompt.npy')
+        cfg.gt = str(_METHOD_ROOT / 'list' / 'pistachio' / 'gt-me-vit.npy')
         # TCA settings
         cfg.win_size = 9
         cfg.gamma = 0.6
@@ -103,7 +109,7 @@ def build_config(dataset):
         cfg.test_bs = 1
         cfg.smooth = 'slide'  # ['fixed': 10, slide': 7]
         cfg.kappa = 7  # smooth window
-        cfg.ckpt_path = '.ckpt/pistachio__1214.pkl'
+        cfg.ckpt_path = './ckpt/pistachio__1214.pkl'
     # base settings
     cfg.feat_dim = 512
     cfg.head_num = 1

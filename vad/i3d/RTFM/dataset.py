@@ -3,14 +3,40 @@ import numpy as np
 from utils import process_feat
 import torch
 from torch.utils.data import DataLoader
+import os
+from pathlib import Path
 torch.set_default_tensor_type('torch.FloatTensor')
 
 
+
+
+def _find_dataset_root() -> Path:
+    candidates = []
+    env_root = os.getenv('PISTACHIO_DATASET_ROOT')
+    if env_root:
+        candidates.append(Path(env_root).expanduser())
+
+    env_repo_root = os.getenv('PISTACHIO_ROOT')
+    if env_repo_root:
+        candidates.append(Path(env_repo_root).expanduser() / 'Pistachio_dataset')
+
+    file_path = Path(__file__).resolve()
+    for parent in file_path.parents:
+        candidates.append(parent / 'Pistachio_dataset')
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    if candidates:
+        return candidates[0]
+    return Path('Pistachio_dataset')
 class Dataset(data.Dataset):
     def __init__(self, args, is_normal=True, transform=None, test_mode=False):
         self.modality = args.modality
         self.is_normal = is_normal
         self.dataset = args.dataset
+        self.dataset_root = _find_dataset_root()
         if self.dataset == 'shanghai':
             if test_mode:
                 self.rgb_list_file = 'list/shanghai-i3d-test-10crop.list'
@@ -18,9 +44,9 @@ class Dataset(data.Dataset):
                 self.rgb_list_file = 'list/shanghai-i3d-train-10crop.list'
         else:
             if test_mode:
-                self.rgb_list_file = '/home/intern/lijie/baseline_output/CLIP-TSA/list/i3d/pistachio_i3d-i3d-test.list'
+                self.rgb_list_file = args.test_rgb_list
             else:
-                self.rgb_list_file = '/home/intern/lijie/baseline_output/CLIP-TSA/list/i3d/pistachio_i3d-i3d.list'
+                self.rgb_list_file = args.rgb_list
 
         self.tranform = transform
         self.test_mode = test_mode
@@ -28,9 +54,29 @@ class Dataset(data.Dataset):
         self.num_frame = 0
         self.labels = None
 
+    def _resolve_feature_path(self, raw_path):
+        path_str = raw_path.strip()
+        if not path_str:
+            return path_str
+
+        path = Path(path_str)
+        if path.is_absolute():
+            return str(path)
+
+        current = path.as_posix()
+        if current.startswith('Pistachio/VAD/'):
+            return str(self.dataset_root / current.split('Pistachio/', 1)[1])
+        if current.startswith('Pistachio_dataset/'):
+            return str(self.dataset_root.parent / current)
+        if current.startswith('VAD/'):
+            return str(self.dataset_root / current)
+
+        return str((Path(self.rgb_list_file).resolve().parent / path).resolve())
 
     def _parse_list(self):
-        self.list = list(open(self.rgb_list_file))
+        with open(self.rgb_list_file, 'r') as handle:
+            self.list = [self._resolve_feature_path(line) for line in handle if line.strip()]
+
         if self.test_mode is False:
             if self.dataset == 'shanghai':
                 if self.is_normal:
@@ -51,6 +97,11 @@ class Dataset(data.Dataset):
                     self.list = self.list[:810]
                     print('abnormal list for ucf')
                     print(self.list)
+            elif self.dataset == 'pistachio':
+                if self.is_normal:
+                    self.list = [item for item in self.list if '/normal/' in item.replace('\\', '/')]
+                else:
+                    self.list = [item for item in self.list if '/anomaly/' in item.replace('\\', '/')]
             
 
     def __getitem__(self, index):

@@ -18,7 +18,8 @@ import argparse
 import copy
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+if 'CUDA_VISIBLE_DEVICES' not in os.environ:
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 
 def load_checkpoint(model, ckpt_path, logger):

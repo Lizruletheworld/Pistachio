@@ -221,8 +221,8 @@ def main():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="/home/intern/lijie/Qwen3-8B",
-        help="Model path (default: /home/intern/lijie/Qwen3-8B)"
+        default=os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen3-8B"),
+        help="Model path or Hugging Face repo id (default: Qwen/Qwen3-8B, override with QWEN_MODEL_PATH)"
     )
     
     args = parser.parse_args()

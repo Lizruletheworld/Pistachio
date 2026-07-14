@@ -365,7 +365,7 @@ python step5.py \
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `--input_dir` | Yes | - | Input directory containing video files (recursively processes all .txt files) |
-| `--model_path` | No | `/home/intern/lijie/Qwen3-8B` | Path to the Qwen3 model |
+| `--model_path` | No | `Qwen/Qwen3-8B` or `$QWEN_MODEL_PATH` | Path to the Qwen3 model or Hugging Face repo id |
 
 ### How It Works
 

@@ -38,6 +38,7 @@ import matplotlib.pyplot as plt
 from my_dataset_loader import get_dataset, create_meshgrid_from_data
 torch.cuda.empty_cache()
 import plotting_utils
+from pathlib import Path
 
 figsize = (7, 7)
 edgecolors = None
@@ -50,7 +51,7 @@ def train_and_evaluate(args):
     
     # --- 1. SET YOUR DATA PATH HERE ---
     # This directory must contain the preprocessed features (from your preprocess.py script)
-    data_dir = "/home/intern/lijie/baseline/MULDE/preprocessed_for_MULDE" # Example Path
+    data_dir = str(Path(__file__).resolve().parent / "preprocessed_for_MULDE")
     m_file_path = "" # Not used here, but required by the dataset loader
     
     # --- 2. Load Dataset ---
@@ -257,22 +258,23 @@ def train_and_evaluate(args):
                     x = (x - data_train_mean) / (data_train_std + 1e-8)
                     x = x.requires_grad_()
 
-                    with torch.no_grad(): # Disable gradient calculation for evaluation
-                        for sigma_ in sigma_L: 
-                            score_id, log_density_id = f"score_norm_{sigma_}", f"log_density_{sigma_}" 
+                    for sigma_ in sigma_L: 
+                        score_id, log_density_id = f"score_norm_{sigma_}", f"log_density_{sigma_}" 
 
-                            # Get score and log density for the clean sample (x) at noise scale sigma_
-                            lambda_factor = sigma_ ** 2 
-                            sigma_tensor = sigma_ * torch.ones((x.shape[0], 1), device=x.device)
-                            score_, log_density_ = model_to_call.score(torch.hstack([x, sigma_tensor]), return_log_density=True)
-                            
-                            score_squared_norms = (torch.norm(score_[:, :-1], dim=1) ** 2)
-                            
-                            anomaly_scores[log_density_id] += log_density_.ravel().tolist()
-                            anomaly_scores[score_id] += (lambda_factor * score_squared_norms).ravel().tolist()
+                        # Get score and log density for the clean sample (x) at noise scale sigma_.
+                        # MULDE's score() computes gradients w.r.t. x, so evaluation cannot run under torch.no_grad().
+                        model.zero_grad()
+                        lambda_factor = sigma_ ** 2 
+                        sigma_tensor = sigma_ * torch.ones((x.shape[0], 1), device=x.device)
+                        score_, log_density_ = model_to_call.score(torch.hstack([x, sigma_tensor]), return_log_density=True)
+                        
+                        score_squared_norms = (torch.norm(score_[:, :-1], dim=1) ** 2)
+                        
+                        anomaly_scores[log_density_id] += log_density_.ravel().tolist()
+                        anomaly_scores[score_id] += (lambda_factor * score_squared_norms).ravel().tolist()
 
-                            scores_by_sigma[sigma_]["log_density"] += log_density_.ravel().tolist()
-                            scores_by_sigma[sigma_]["score_norm"] += score_squared_norms.ravel().tolist()
+                        scores_by_sigma[sigma_]["log_density"] += log_density_.ravel().tolist()
+                        scores_by_sigma[sigma_]["score_norm"] += score_squared_norms.ravel().tolist()
 
                 if return_scores_by_sigma:
                     anomaly_scores = scores_by_sigma
